@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameRanks - Rankings dos Melhores Jogadores</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3a 50%, #2d1b69 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid #6366f1;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-links a:hover {
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 120px 0 80px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.2); }
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        /* Game Selector */
+        .game-selector {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .game-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .game-tab {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #ffffff;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-tab:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .game-tab.active {
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Rankings */
+        .rankings-section {
+            padding: 2rem 0;
+        }
+
+        .rankings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .rankings-title {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .last-update {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, #10b981, #059669);
+            border: none;
+            color: #ffffff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .rankings-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: #6366f1;
+        }
+
+        .player-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .player-rank {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #6366f1;
+        }
+
+        .rank-1 .player-rank { color: #ffd700; }
+        .rank-2 .player-rank { color: #c0c0c0; }
+        .rank-3 .player-rank { color: #cd7f32; }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .player-details h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .player-details p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.8rem;
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #6366f1;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 0.2rem;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .game-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .rankings-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(15, 15, 35, 0.95);
+            padding: 3rem 0;
+            margin-top: 4rem;
+            border-top: 2px solid #6366f1;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            color: #6366f1;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section p, .footer-section a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .footer-section a:hover {
+            color: #6366f1;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Estilos para as novas seções */
+        .stats-section, .contact-section {
+            padding: 4rem 0;
+            margin: 4rem 0;
+        }
+
+        .stat-card, .contact-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover, .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">GameRanks</div>
+            <ul class="nav-links">
+                <li><a href="#home" onclick="scrollToSection('hero')">Início</a></li>
+                <li><a href="#rankings" onclick="scrollToSection('rankings-section')">Rankings</a></li>
+                <li><a href="#stats" onclick="scrollToSection('stats-section')">Estatísticas</a></li>
+                <li><a href="#contact" onclick="scrollToSection('contact-section')">Contato</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero" id="hero">
+            <div class="container">
+                <h1>Rankings dos Melhores Jogadores</h1>
+                <p>Acompanhe em tempo real os rankings dos top players dos seus jogos favoritos</p>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="game-selector">
+                <div class="game-tabs">
+                    <button class="game-tab active" data-game="lol">League of Legends</button>
+                    <button class="game-tab" data-game="csgo">Counter-Strike 2</button>
+                    <button class="game-tab" data-game="valorant">Valorant</button>
+                    <button class="game-tab" data-game="dota2">Dota 2</button>
+                    <button class="game-tab" data-game="apex">Apex Legends</button>
+                </div>
+                
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar jogador..." id="searchInput">
+                </div>
+            </div>
+
+            <div class="rankings-section" id="rankings-section">
+                <div class="rankings-header">
+                    <div>
+                        <h2 class="rankings-title" id="rankingsTitle">League of Legends - Challenger</h2>
+                        <p class="last-update">Última atualização: <span id="lastUpdate">agora</span></p>
+                    </div>
+                    <button class="refresh-btn" id="refreshBtn">
+                        🔄 Atualizar Rankings
+                    </button>
+                </div>
+
+                <div class="rankings-grid" id="rankingsGrid">
+                    <!-- Rankings serão carregados aqui -->
+                </div>
+            </div>
+
+            <!-- Seção de Estatísticas -->
+            <div class="stats-section" id="stats-section">
+                <h2 style="font-size: 2.5rem; margin-bottom: 2rem; text-align: center;">Estatísticas Globais</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+                    <div class="stat-card">
+                        <h3 style="color: #6366f1; margin-bottom: 1rem;">🎮 Jogadores Ativos</h3>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #ffffff; margin-bottom: 0.5rem;">2.8M+</div>
+                        <p style="color: rgba(255,255,255,0.7);">Jogadores cadastrados em nossa plataforma</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3 style="color: #8b5cf6; margin-bottom: 1rem;">📊 Partidas Analisadas</h3>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #ffffff; margin-bottom: 0.5rem;">15.2M+</div>
+                        <p style="color: rgba(255,255,255,0.7);">Partidas processadas hoje</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3 style="color: #ec4899; margin-bottom: 1rem;">⚡ Atualizações</h3>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #ffffff; margin-bottom: 0.5rem;">30seg</div>
+                        <p style="color: rgba(255,255,255,0.7);">Intervalo de atualização dos rankings</p>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.05); border-radius: 20px; padding: 2rem; margin-bottom: 2rem;">
+                    <h3 style="color: #6366f1; margin-bottom: 1.5rem; text-align: center;">🏆 Jogos Mais Populares</h3>
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <span>League of Legends</span>
+                            <div style="background: #6366f1; height: 8px; width: 85%; border-radius: 4px; position: relative;">
+                                <div style="position: absolute; right: 10px; top: -25px; color: #ffffff; font-size: 0.9rem;">85%</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <span>Counter-Strike 2</span>
+                            <div style="background: #8b5cf6; height: 8px; width: 72%; border-radius: 4px; position: relative;">
+                                <div style="position: absolute; right: 10px; top: -25px; color: #ffffff; font-size: 0.9rem;">72%</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <span>Valorant</span>
+                            <div style="background: #ec4899; height: 8px; width: 68%; border-radius: 4px; position: relative;">
+                                <div style="position: absolute; right: 10px; top: -25px; color: #ffffff; font-size: 0.9rem;">68%</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <span>Dota 2</span>
+                            <div style="background: #10b981; height: 8px; width: 54%; border-radius: 4px; position: relative;">
+                                <div style="position: absolute; right: 10px; top: -25px; color: #ffffff; font-size: 0.9rem;">54%</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <span>Apex Legends</span>
+                            <div style="background: #f59e0b; height: 8px; width: 41%; border-radius: 4px; position: relative;">
+                                <div style="position: absolute; right: 10px; top: -25px; color: #ffffff; font-size: 0.9rem;">41%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Contato -->
+            <div class="contact-section" id="contact-section">
+                <h2 style="font-size: 2.5rem; margin-bottom: 2rem; text-align: center;">Entre em Contato</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+                    <div class="contact-card">
+                        <h3 style="color: #6366f1; margin-bottom: 1rem;">📧 Email</h3>
+                        <p style="color: #ffffff; font-size: 1.1rem; margin-bottom: 0.5rem;">contato@gameranks.com</p>
+                        <p style="color: rgba(255,255,255,0.7);">Para parcerias e suporte técnico</p>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <h3 style="color: #8b5cf6; margin-bottom: 1rem;">💬 Discord</h3>
+                        <p style="color: #ffffff; font-size: 1.1rem; margin-bottom: 0.5rem;">GameRanks#1234</p>
+                        <p style="color: rgba(255,255,255,0.7);">Comunidade e suporte instantâneo</p>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <h3 style="color: #ec4899; margin-bottom: 1rem;">🐦 Twitter</h3>
+                        <p style="color: #ffffff; font-size: 1.1rem; margin-bottom: 0.5rem;">@GameRanks</p>
+                        <p style="color: rgba(255,255,255,0.7);">Novidades e atualizações</p>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.05); border-radius: 20px; padding: 2rem; text-align: center;">
+                    <h3 style="color: #6366f1; margin-bottom: 1rem;">🚀 Quer ser Parceiro?</h3>
+                    <p style="color: rgba(255,255,255,0.8); margin-bottom: 1.5rem;">
+                        Se você é streamer, pro player ou organização, entre em contato conosco para parcerias exclusivas!
+                    </p>
+                    <button onclick="window.open('https://discord.com/users/zuhncatchanga', '_blank')" style="background: linear-gradient(45deg, #6366f1, #8b5cf6); border: none; color: #ffffff; padding: 1rem 2rem; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.3s ease;">
+                        Falar com Nossa Equipe
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>GameRanks</h3>
+                    <p>O melhor site para acompanhar rankings de jogadores dos principais e-sports do mundo.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Jogos Suportados</h3>
+                    <a href="#">League of Legends</a>
+                    <a href="#">Counter-Strike 2</a>
+                    <a href="#">Valorant</a>
+                    <a href="#">Dota 2</a>
+                    <a href="#">Apex Legends</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Recursos</h3>
+                    <a href="#">API de Rankings</a>
+                    <a href="#">Estatísticas Avançadas</a>
+                    <a href="#">Histórico de Jogos</a>
+                    <a href="#">Alertas Personalizados</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Contato</h3>
+                    <p>Email: contato@gameranks.com</p>
+                    <p>Discord: GameRanks#1234</p>
+                    <p>Twitter: @GameRanks</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 GameRanks. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dados dos jogadores para cada jogo
+        const gameData = {
+            lol: {
+                title: "League of Legends - Challenger",
+                players: [
+                    { name: "Faker", team: "T1", rank: 1, lp: 1847, winRate: 73, games: 156, champion: "Azir" },
+                    { name: "ShowMaker", team: "DRX", rank: 2, lp: 1821, winRate: 71, games: 142, champion: "LeBlanc" },
+                    { name: "Chovy", team: "Gen.G", rank: 3, lp: 1804, winRate: 69, games: 138, champion: "Viktor" },
+                    { name: "Caps", team: "G2", rank: 4, lp: 1789, winRate: 68, games: 151, champion: "Orianna" },
+                    { name: "Jensen", team: "TL", rank: 5, lp: 1776, winRate: 67, games: 144, champion: "Syndra" }
+                ]
+            },
+            csgo: {
+                title: "Counter-Strike 2 - Global Elite",
+                players: [
+                    { name: "s1mple", team: "NAVI", rank: 1, rating: 1.35, winRate: 76, games: 89, kd: 1.45 },
+                    { name: "ZywOo", team: "Vitality", rank: 2, rating: 1.32, winRate: 74, games: 94, kd: 1.41 },
+                    { name: "sh1ro", team: "Cloud9", rank: 3, rating: 1.28, winRate: 72, games: 87, kd: 1.38 },
+                    { name: "device", team: "Astralis", rank: 4, rating: 1.25, winRate: 70, games: 91, kd: 1.35 },
+                    { name: "NiKo", team: "G2", rank: 5, rating: 1.23, winRate: 69, games: 96, kd: 1.33 }
+                ]
+            },
+            valorant: {
+                title: "Valorant - Radiant",
+                players: [
+                    { name: "TenZ", team: "Sentinels", rank: 1, rr: 587, winRate: 78, games: 134, agent: "Jett" },
+                    { name: "ScreaM", team: "Liquid", rank: 2, rr: 569, winRate: 75, games: 128, agent: "Phoenix" },
+                    { name: "aspas", team: "LOUD", rank: 3, rr: 554, winRate: 73, games: 142, agent: "Jett" },
+                    { name: "yay", team: "OpTic", rank: 4, rr: 541, winRate: 72, games: 139, agent: "Chamber" },
+                    { name: "Derke", team: "Fnatic", rank: 5, rr: 528, winRate: 70, games: 145, agent: "Raze" }
+                ]
+            },
+            dota2: {
+                title: "Dota 2 - Immortal",
+                players: [
+                    { name: "Miracle-", team: "Nigma", rank: 1, mmr: 12847, winRate: 74, games: 167, hero: "Invoker" },
+                    { name: "Arteezy", team: "EG", rank: 2, mmr: 12721, winRate: 72, games: 189, hero: "Anti-Mage" },
+                    { name: "Sumail", team: "OG", rank: 3, mmr: 12654, winRate: 71, games: 156, hero: "Storm Spirit" },
+                    { name: "Topson", team: "OG", rank: 4, mmr: 12589, winRate: 69, games: 173, hero: "Monkey King" },
+                    { name: "ana", team: "OG", rank: 5, mmr: 12467, winRate: 68, games: 184, hero: "Phantom Assassin" }
+                ]
+            },
+            apex: {
+                title: "Apex Legends - Predator",
+                players: [
+                    { name: "aceu", team: "NRG", rank: 1, rp: 28547, winRate: 76, games: 234, legend: "Wraith" },
+                    { name: "ImperialHal", team: "TSM", rank: 2, rp: 27821, winRate: 74, games: 267, legend: "Bloodhound" },
+                    { name: "Dizzy", team: "NRG", rank: 3, rp: 27456, winRate: 73, games: 198, legend: "Lifeline" },
+                    { name: "Shroud", team: "Solo", rank: 4, rp: 26987, winRate: 71, games: 289, legend: "Pathfinder" },
+                    { name: "Albralelie", team: "TSM", rank: 5, rp: 26654, winRate: 70, games: 245, legend: "Octane" }
+                ]
+            }
+        };
+
+        // Variáveis globais
+        let currentGame = 'lol';
+        let allPlayers = [];
+        let filteredPlayers = [];
+
+        // Elementos do DOM
+        const gameTabs = document.querySelectorAll('.game-tab');
+        const rankingsTitle = document.getElementById('rankingsTitle');
+        const rankingsGrid = document.getElementById('rankingsGrid');
+        const searchInput = document.getElementById('searchInput');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const lastUpdate = document.getElementById('lastUpdate');
+
+        // Event Listeners
+        gameTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const game = tab.getAttribute('data-game');
+                switchGame(game);
+            });
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            filterPlayers(e.target.value);
+        });
+
+        refreshBtn.addEventListener('click', () => {
+            refreshRankings();
+        });
+
+        // Função para trocar de jogo
+        function switchGame(game) {
+            currentGame = game;
+            
+            // Atualizar tabs ativos
+            gameTabs.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.getAttribute('data-game') === game) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Carregar dados do jogo
+            loadGameData();
+        }
+
+        // Carregar dados do jogo selecionado
+        function loadGameData() {
+            showLoading();
+            
+            setTimeout(() => {
+                const data = gameData[currentGame];
+                rankingsTitle.textContent = data.title;
+                allPlayers = data.players;
+                filteredPlayers = [...allPlayers];
+                renderRankings();
+                updateLastUpdate();
+                searchInput.value = '';
+            }, 800);
+        }
+
+        // Mostrar loading
+        function showLoading() {
+            rankingsGrid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+        }
+
+        // Renderizar rankings
+        function renderRankings() {
+            if (filteredPlayers.length === 0) {
+                rankingsGrid.innerHTML = '<div style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.7);">Nenhum jogador encontrado</div>';
+                return;
+            }
+
+            const rankingsHTML = filteredPlayers.map(player => {
+                const rankClass = player.rank <= 3 ? `rank-${player.rank}` : '';
+                return createPlayerCard(player, rankClass);
+            }).join('');
+
+            rankingsGrid.innerHTML = rankingsHTML;
+        }
+
+        // Criar card do jogador
+        function createPlayerCard(player, rankClass) {
+            const avatar = player.name.charAt(0).toUpperCase();
+            let statsHTML = '';
+
+            // Gerar estatísticas baseadas no jogo
+            switch(currentGame) {
+                case 'lol':
+                    statsHTML = `
+                        <div class="stat-item">
+                            <div class="stat-value">${player.lp}</div>
+                            <div class="stat-label">LP</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.winRate}%</div>
+                            <div class="stat-label">Win Rate</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.games}</div>
+                            <div class="stat-label">Jogos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.champion}</div>
+                            <div class="stat-label">Campeão</div>
+                        </div>
+                    `;
+                    break;
+                case 'csgo':
+                    statsHTML = `
+                        <div class="stat-item">
+                            <div class="stat-value">${player.rating}</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.winRate}%</div>
+                            <div class="stat-label">Win Rate</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.kd}</div>
+                            <div class="stat-label">K/D</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.games}</div>
+                            <div class="stat-label">Partidas</div>
+                        </div>
+                    `;
+                    break;
+                case 'valorant':
+                    statsHTML = `
+                        <div class="stat-item">
+                            <div class="stat-value">${player.rr}</div>
+                            <div class="stat-label">RR</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.winRate}%</div>
+                            <div class="stat-label">Win Rate</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.games}</div>
+                            <div class="stat-label">Jogos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.agent}</div>
+                            <div class="stat-label">Agente</div>
+                        </div>
+                    `;
+                    break;
+                case 'dota2':
+                    statsHTML = `
+                        <div class="stat-item">
+                            <div class="stat-value">${player.mmr}</div>
+                            <div class="stat-label">MMR</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.winRate}%</div>
+                            <div class="stat-label">Win Rate</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.games}</div>
+                            <div class="stat-label">Jogos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.hero}</div>
+                            <div class="stat-label">Herói</div>
+                        </div>
+                    `;
+                    break;
+                case 'apex':
+                    statsHTML = `
+                        <div class="stat-item">
+                            <div class="stat-value">${player.rp}</div>
+                            <div class="stat-label">RP</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.winRate}%</div>
+                            <div class="stat-label">Win Rate</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.games}</div>
+                            <div class="stat-label">Partidas</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.legend}</div>
+                            <div class="stat-label">Lenda</div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            return `
+                <div class="player-card ${rankClass}">
+                    <div class="player-header">
+                        <div class="player-rank">#${player.rank}</div>
+                        <div class="player-info">
+                            <div class="player-avatar">${avatar}</div>
+                            <div class="player-details">
+                                <h3>${player.name}</h3>
+                                <p>${player.team}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="player-stats">
+                        ${statsHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Filtrar jogadores pela busca
+        function filterPlayers(searchTerm) {
+            if (!searchTerm.trim()) {
+                filteredPlayers = [...allPlayers];
+            } else {
+                filteredPlayers = allPlayers.filter(player => 
+                    player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    player.team.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            renderRankings();
+        }
+
+        // Atualizar rankings
+        function refreshRankings() {
+            const originalText = refreshBtn.textContent;
+            refreshBtn.textContent = '🔄 Atualizando...';
+            refreshBtn.disabled = true;
+            
+            setTimeout(() => {
+                // Simular pequenas mudanças nos dados
+                allPlayers.forEach(player => {
+                    if (currentGame === 'lol') {
+                        player.lp += Math.floor(Math.random() * 20) - 10;
+                        player.winRate += Math.floor(Math.random() * 4) - 2;
+                        if (player.winRate < 40) player.winRate = 40;
+                        if (player.winRate > 85) player.winRate = 85;
+                    } else if (currentGame === 'csgo') {
+                        player.rating += (Math.random() * 0.1) - 0.05;
+                        if (player.rating < 1.0) player.rating = 1.0;
+                        if (player.rating > 2.0) player.rating = 2.0;
+                        player.rating = Math.round(player.rating * 100) / 100;
+                    } else if (currentGame === 'valorant') {
+                        player.rr += Math.floor(Math.random() * 30) - 15;
+                        if (player.rr < 100) player.rr = 100;
+                    } else if (currentGame === 'dota2') {
+                        player.mmr += Math.floor(Math.random() * 100) - 50;
+                        if (player.mmr < 8000) player.mmr = 8000;
+                    } else if (currentGame === 'apex') {
+                        player.rp += Math.floor(Math.random() * 200) - 100;
+                        if (player.rp < 20000) player.rp = 20000;
+                    }
+                });
+                
+                filteredPlayers = [...allPlayers];
+                renderRankings();
+                updateLastUpdate();
+                
+                refreshBtn.textContent = originalText;
+                refreshBtn.disabled = false;
+            }, 2000);
+        }
+
+        // Atualizar horário da última atualização
+        function updateLastUpdate() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            lastUpdate.textContent = timeString;
+        }
+
+        // Inicializar o site quando a página carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGameData();
+        });
+
+        // Função para rolar suavemente até uma seção
+        function scrollToSection(sectionId) {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+    </script>
+</body>
+</html>
